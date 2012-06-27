@@ -16,5 +16,5 @@ running at the moment.
 * OS X Leopard or later
 * iTunes must be running (that's how it has to be, sorry)
 * `flac` and `lame` must be installed and available in your bash $PATH
-  * I recommend installing the above with Homebrew (`homebrew install flac` will provide everything you need)
+ * I recommend installing the above with Homebrew (`homebrew install flac` will provide everything you need)
 * And your iPod or iPhone needs to be connected, natch
