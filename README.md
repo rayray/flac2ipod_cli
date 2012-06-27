@@ -2,9 +2,14 @@
 
 ## This isn't ready for use yet.
 
+**Current status:** successfully adds MP3s to iPod, working on conversion now
+
 This is a command line program that will accept either FLAC file(s) or a 
 directory of FLACs as an argument, convert the FLAC(s) to MP3s, and load
 the MP3s to a connected iPod or iPhone.
+
+The loaded MP3s bypass the iTunes Library, and after syncing the MP3s
+will be deleted.
 
 ##Compiling
 This program uses the Foundation and Scripting Bridge frameworks.
