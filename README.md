@@ -5,3 +5,16 @@
 This is a command line program that will accept either FLAC file(s) or a 
 directory of FLACs as an argument, convert the FLAC(s) to MP3s, and load
 the MP3s to a connected iPod or iPhone.
+
+##Compiling
+This program uses the Foundation and Scripting Bridge frameworks.
+
+`gcc -framework Foundation -framework ScriptingBridge main.m` is how it's
+running at the moment.
+
+##Running Requirements
+* OS X Leopard or later
+* iTunes must be running (that's how it has to be, sorry)
+* `flac` and `lame` must be installed and available in your bash $PATH
+** I recommend installing the above with Homebrew (`homebrew install flac` will provide everything you need)
+* And your iPod or iPhone needs to be connected, natch
