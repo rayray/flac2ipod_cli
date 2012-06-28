@@ -63,24 +63,16 @@ int main(int argc, const char * argv[])
             filemgr = [NSFileManager defaultManager];
             currentpath = [filemgr currentDirectoryPath];
             NSLog (@"Current directory is %@", currentpath);
-
             
             if((dev = getDevice(iTunes)) == nil){
                 printf("A usable device doesn't seem to be connected. Woops.\n");
                 exit(1);
             }
             
-            //NSLog(@"%lld",[dev freeSpace]);
-            
             if((devpl = getDevicePlaylist(dev)) == nil){
                 printf("Can't find the master playlist on the device. Woops.\n");
                 exit(1);
             }
-            
-            //devplTracks = [devpl tracks];
-            //for(iTunesTrack *t in devplTracks){
-            //    NSLog(@"name: %@",[t name]);
-            //}
             
             //let's try adding something
             iTunesTrack *track = [iTunes add:[NSArray arrayWithObject:[NSURL fileURLWithPath:filepath]]
