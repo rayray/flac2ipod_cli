@@ -8,6 +8,46 @@
 #import <Foundation/Foundation.h>
 #import "iTunes.h"
 
+iTunesSource* getDevice(iTunesApplication *iTunes){
+    
+    SBElementArray *srcs = [iTunes sources];
+    iTunesSource *dev = nil;
+    
+    for (iTunesSource *obj in srcs){
+        //we're going to assume there's only one device connected... sorry
+        if([obj kind] == iTunesESrcIPod) {
+            dev = obj;
+            return dev;
+        }
+    }
+    return dev;
+}
+
+iTunesPlaylist* getDevicePlaylist(iTunesSource *dev){
+    
+    SBElementArray *pls = [dev playlists];
+    iTunesPlaylist *devpl = nil;
+    
+    for(iTunesPlaylist *p in pls){
+        //NSLog(@"name is: %@",[p name]);
+        //NSLog(@"Is of type: %@", [p className]);
+        if([[p name] isEqualToString:@"iPod touch"]){
+            devpl = p;
+            return devpl;
+        }
+    }
+    return devpl;
+}
+
+void printDevicePlaylist(iTunesPlaylist *p){
+    
+    SBElementArray *tracks = [p tracks];
+    
+    for(iTunesTrack *t in tracks){
+        NSLog(@"name: %@",[t name]);
+    }
+}
+
 int main(int argc, const char * argv[])
 {
     @autoreleasepool {
@@ -17,45 +57,22 @@ int main(int argc, const char * argv[])
         if([iTunes isRunning]){
             NSFileManager *filemgr;
             NSString *currentpath;
-            SBElementArray *srcs = [iTunes sources], *pls; //*devplTracks;
             iTunesSource *dev = nil;
             iTunesPlaylist *devpl = nil;
             NSString *filepath = [[NSString stringWithUTF8String:argv[1]] stringByExpandingTildeInPath];
-            //NSLog(@"%@",filepath);
             filemgr = [NSFileManager defaultManager];
             currentpath = [filemgr currentDirectoryPath];
             NSLog (@"Current directory is %@", currentpath);
-            //if ([filemgr changeCurrentDirectoryPath: @"/Users/dnomy/"] == NO)
-            //    NSLog (@"Cannot change directory.");
-            //NSURL* file = [NSURL fileURLWithPath:@"~/Desktop/temp/" isDirectory:NO];
-            //NSString *track = @"";
+
             
-            
-            for (iTunesSource *obj in srcs){
-                //we're going to assume there's only one device connected... sorry
-                if([obj kind] == iTunesESrcIPod) {
-                    dev = obj;
-                    break;
-                }
-            }
-            
-            if(dev == nil){
+            if((dev = getDevice(iTunes)) == nil){
                 printf("A usable device doesn't seem to be connected. Woops.\n");
                 exit(1);
             }
             
             //NSLog(@"%lld",[dev freeSpace]);
-            pls = [dev playlists];
-            for(iTunesPlaylist *p in pls){
-                //NSLog(@"name is: %@",[p name]);
-                //NSLog(@"Is of type: %@", [p className]);
-                if([[p name] isEqualToString:@"iPod touch"]){
-                    devpl = p;
-                    break;
-                }
-            }
             
-            if(devpl == nil){
+            if((devpl = getDevicePlaylist(dev)) == nil){
                 printf("Can't find the master playlist on the device. Woops.\n");
                 exit(1);
             }
