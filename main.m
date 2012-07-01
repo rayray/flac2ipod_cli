@@ -8,6 +8,10 @@
 #import <Foundation/Foundation.h>
 #import "iTunes.h"
 
+void parseArgs(const char **argv){
+    //NSArray *arguments = [[NSProcessInfo processInfo] arguments];
+}
+
 iTunesSource* getDevice(iTunesApplication *iTunes){
     
     SBElementArray *srcs = [iTunes sources];
@@ -74,6 +78,17 @@ void findPaths(NSString *flacpath, NSString *metaflacpath, NSString *lamepath){
     lamepath = [filepaths objectAtIndex:2];
 }
 
+void convert(){
+    
+}
+
+void pushToiPod(iTunesApplication *iTunes, iTunesPlaylist *devpl, NSString *filepath){
+    //let's try adding something
+    iTunesTrack *track = [iTunes add:[NSArray arrayWithObject:[NSURL fileURLWithPath:filepath]]
+                                  to:devpl];
+    NSLog(@"track is: %@", track);
+}
+
 int main(int argc, const char * argv[])
 {
     @autoreleasepool {
@@ -101,11 +116,8 @@ int main(int argc, const char * argv[])
             }
             
             findPaths(flacpath, metaflacpath, lamepath);
-            
-            //let's try adding something
-            iTunesTrack *track = [iTunes add:[NSArray arrayWithObject:[NSURL fileURLWithPath:filepath]]
-                     to:devpl];
-            NSLog(@"track is: %@", track);
+            //convert();
+            pushToiPod(iTunes, devpl, filepath);
         }
         else printf("Please start iTunes and try again.\n");
     }
