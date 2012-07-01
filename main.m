@@ -48,6 +48,32 @@ void printDevicePlaylist(iTunesPlaylist *p){
     }
 }
 
+void findPaths(NSString *flacpath, NSString *metaflacpath, NSString *lamepath){
+    
+    NSTask *which = [[NSTask alloc] init];
+    NSPipe *output = [NSPipe pipe];
+    [which setLaunchPath:@"/usr/bin/which"];
+    [which setArguments:[NSArray arrayWithObjects:@"flac",@"metaflac",@"lame",nil]];
+    [which setStandardOutput:output];
+    [which launch];
+    [which waitUntilExit];
+    NSData *outdata = [[output fileHandleForReading] readDataToEndOfFile];
+    NSString *fps = [[[NSString alloc] initWithData:outdata encoding:NSUTF8StringEncoding] autorelease];
+    [output release];
+    [outdata release];
+    [which release];
+    NSArray *filepaths = [fps componentsSeparatedByString:@"\n"];
+    
+    if([filepaths count]!=3){
+        printf("Didn't find all paths.  Please make sure they are installed.\n");
+        exit(1);
+    }
+    
+    flacpath = [filepaths objectAtIndex:0];
+    metaflacpath = [filepaths objectAtIndex:1];
+    lamepath = [filepaths objectAtIndex:2];
+}
+
 int main(int argc, const char * argv[])
 {
     @autoreleasepool {
@@ -62,7 +88,7 @@ int main(int argc, const char * argv[])
             NSString *filepath = [[NSString stringWithUTF8String:argv[1]] stringByExpandingTildeInPath];
             filemgr = [NSFileManager defaultManager];
             currentpath = [filemgr currentDirectoryPath];
-            NSLog (@"Current directory is %@", currentpath);
+            NSString *flacpath = nil, *metaflacpath = nil, *lamepath = nil;
             
             if((dev = getDevice(iTunes)) == nil){
                 printf("A usable device doesn't seem to be connected. Woops.\n");
@@ -73,6 +99,8 @@ int main(int argc, const char * argv[])
                 printf("Can't find the master playlist on the device. Woops.\n");
                 exit(1);
             }
+            
+            findPaths(flacpath, metaflacpath, lamepath);
             
             //let's try adding something
             iTunesTrack *track = [iTunes add:[NSArray arrayWithObject:[NSURL fileURLWithPath:filepath]]
