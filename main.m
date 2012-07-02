@@ -8,8 +8,9 @@
 #import <Foundation/Foundation.h>
 #import "iTunes.h"
 
-void parseArgs(const char **argv){
-    //NSArray *arguments = [[NSProcessInfo processInfo] arguments];
+void parseArgs(){
+    NSArray *arguments = [[NSProcessInfo processInfo] arguments];
+    NSLog(@"%@",arguments);
 }
 
 iTunesSource* getDevice(iTunesApplication *iTunes){
@@ -91,35 +92,42 @@ void pushToiPod(iTunesApplication *iTunes, iTunesPlaylist *devpl, NSString *file
 
 int main(int argc, const char * argv[])
 {
-    @autoreleasepool {
-        
-        iTunesApplication *iTunes = [SBApplication applicationWithBundleIdentifier:@"com.apple.iTunes"];
-        
-        if([iTunes isRunning]){
-            NSFileManager *filemgr;
-            NSString *currentpath;
-            iTunesSource *dev = nil;
-            iTunesPlaylist *devpl = nil;
-            NSString *filepath = [[NSString stringWithUTF8String:argv[1]] stringByExpandingTildeInPath];
-            filemgr = [NSFileManager defaultManager];
-            currentpath = [filemgr currentDirectoryPath];
-            NSString *flacpath = nil, *metaflacpath = nil, *lamepath = nil;
-            
-            if((dev = getDevice(iTunes)) == nil){
-                printf("A usable device doesn't seem to be connected. Woops.\n");
-                exit(1);
-            }
-            
-            if((devpl = getDevicePlaylist(dev)) == nil){
-                printf("Can't find the master playlist on the device. Woops.\n");
-                exit(1);
-            }
-            
-            findPaths(flacpath, metaflacpath, lamepath);
-            //convert();
-            pushToiPod(iTunes, devpl, filepath);
-        }
-        else printf("Please start iTunes and try again.\n");
+    
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    iTunesApplication *iTunes = [SBApplication applicationWithBundleIdentifier:@"com.apple.iTunes"];
+    
+    if([iTunes isRunning]){
+        printf("Please start iTunes and try again.\n");
+        exit(1);
     }
+    NSFileManager *filemgr;
+    NSString *currentpath;
+    iTunesSource *dev = nil;
+    iTunesPlaylist *devpl = nil;
+    NSString *userfilepath = nil;
+    filemgr = [NSFileManager defaultManager];
+    currentpath = [filemgr currentDirectoryPath];
+    NSString *flacpath = nil, *metaflacpath = nil, *lamepath = nil;
+    
+    parseArgs();
+    exit(0);
+    
+    if((dev = getDevice(iTunes)) == nil){
+        printf("A usable device doesn't seem to be connected. Woops.\n");
+        exit(1);
+    }
+    
+    if((devpl = getDevicePlaylist(dev)) == nil){
+        printf("Can't find the master playlist on the device. Woops.\n");
+        exit(1);
+    }
+    
+    findPaths(flacpath, metaflacpath, lamepath);
+    //convert();
+    pushToiPod(iTunes, devpl, userfilepath);
+    
+    printf("Please start iTunes and try again.\n");
+    
+    [pool drain];
     return 0;
 }
