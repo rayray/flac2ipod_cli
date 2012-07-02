@@ -14,8 +14,18 @@ will be deleted.
 ##Compiling
 This program uses the Foundation and Scripting Bridge frameworks.
 
-`gcc -framework Foundation -framework ScriptingBridge main.m` is how it's
-running at the moment.
+First, you need to generate the Scripting Bridge header file for iTunes.  In the same
+folder as `main.m`, execute this:
+
+`sdef /Applications/iTunes.app | sdp -fh --basename iTunes`
+
+The `iTunes.h` header should be in your current folder.
+
+Now compile with:
+
+`gcc -framework Foundation -framework ScriptingBridge main.m`
+
+This may change in the future.
 
 ##Running Requirements
 * OS X Leopard or later
