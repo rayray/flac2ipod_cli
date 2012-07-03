@@ -22,10 +22,12 @@ iTunesSource* getDevice(iTunesApplication *iTunes){
     SBElementArray *srcs = [iTunes sources];
     iTunesSource *dev = nil;
     
+    printf("Searching for device... ");
     for (iTunesSource *s in srcs){
         //we're going to assume there's only one device connected... sorry
         if([s kind] == iTunesESrcIPod) {
             dev = s;
+            printf("found %s.\n", [[dev name] UTF8String]);
             return dev;
         }
     }
@@ -37,10 +39,11 @@ iTunesPlaylist* getDevicePlaylist(iTunesSource *dev){
     SBElementArray *pls = [dev playlists];
     iTunesPlaylist *devpl = nil;
     
+    printf("Obtaining master playlist...\n");
     for(iTunesPlaylist *p in pls){
         //NSLog(@"name is: %@",[p name]);
         //NSLog(@"Is of type: %@", [p className]);
-        if([[p name] isEqualToString:@"iPod touch"]){
+        if([[p name] isEqualToString:[dev name]]){
             devpl = p;
             return devpl;
         }
@@ -64,6 +67,7 @@ void findPaths(NSString **flacpath, NSString **metaflacpath, NSString **lamepath
     [which setLaunchPath:@"/usr/bin/which"];
     [which setArguments:[NSArray arrayWithObjects:@"flac",@"metaflac",@"lame",nil]];
     [which setStandardOutput:output];
+    printf("Finding tools...\n");
     [which launch];
     [which waitUntilExit];
     NSData *outdata = [[output fileHandleForReading] readDataToEndOfFile];
@@ -82,8 +86,11 @@ void findPaths(NSString **flacpath, NSString **metaflacpath, NSString **lamepath
     }
     
     *flacpath = [filepaths objectAtIndex:0];
+    printf("flac: %s\n", [*flacpath UTF8String]);
     *metaflacpath = [filepaths objectAtIndex:1];
+    printf("metaflac: %s\n", [*metaflacpath UTF8String]);
     *lamepath = [filepaths objectAtIndex:2];
+    printf("lame: %s\n", [*lamepath UTF8String]);
     //[filepaths release];
 }
 
