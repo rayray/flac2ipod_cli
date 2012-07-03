@@ -10,7 +10,11 @@
 
 void parseArgs(){
     NSArray *arguments = [[NSProcessInfo processInfo] arguments];
-    NSLog(@"%@",arguments);
+    
+    if([arguments count] < 2){
+        printf("Usage: flac2ipod [flacFILE | flacDIR]\n");
+        exit(0);
+    }
 }
 
 iTunesSource* getDevice(iTunesApplication *iTunes){
@@ -18,10 +22,10 @@ iTunesSource* getDevice(iTunesApplication *iTunes){
     SBElementArray *srcs = [iTunes sources];
     iTunesSource *dev = nil;
     
-    for (iTunesSource *obj in srcs){
+    for (iTunesSource *s in srcs){
         //we're going to assume there's only one device connected... sorry
-        if([obj kind] == iTunesESrcIPod) {
-            dev = obj;
+        if([s kind] == iTunesESrcIPod) {
+            dev = s;
             return dev;
         }
     }
@@ -53,7 +57,7 @@ void printDevicePlaylist(iTunesPlaylist *p){
     }
 }
 
-void findPaths(NSString *flacpath, NSString *metaflacpath, NSString *lamepath){
+void findPaths(NSString **flacpath, NSString **metaflacpath, NSString **lamepath){
     
     NSTask *which = [[NSTask alloc] init];
     NSPipe *output = [NSPipe pipe];
@@ -69,14 +73,18 @@ void findPaths(NSString *flacpath, NSString *metaflacpath, NSString *lamepath){
     [which release];
     NSArray *filepaths = [fps componentsSeparatedByString:@"\n"];
     
-    if([filepaths count]!=3){
-        printf("Didn't find all paths.  Please make sure they are installed.\n");
+    //NSLog(@"%@",filepaths);
+    
+    if([filepaths count]!=4){
+        printf("Didn't find all paths.\n");
+        printf("Please ensure flac, metaflac, and lame are installed and are available in $PATH.\n");
         exit(1);
     }
     
-    flacpath = [filepaths objectAtIndex:0];
-    metaflacpath = [filepaths objectAtIndex:1];
-    lamepath = [filepaths objectAtIndex:2];
+    *flacpath = [filepaths objectAtIndex:0];
+    *metaflacpath = [filepaths objectAtIndex:1];
+    *lamepath = [filepaths objectAtIndex:2];
+    
 }
 
 void convert(){
@@ -90,27 +98,22 @@ void pushToiPod(iTunesApplication *iTunes, iTunesPlaylist *devpl, NSString *file
     NSLog(@"track is: %@", track);
 }
 
-int main(int argc, const char * argv[])
-{
-    
+int main(int argc, const char * argv[]){
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     iTunesApplication *iTunes = [SBApplication applicationWithBundleIdentifier:@"com.apple.iTunes"];
     
-    if([iTunes isRunning]){
+    if(![iTunes isRunning]){
         printf("Please start iTunes and try again.\n");
         exit(1);
     }
-    NSFileManager *filemgr;
-    NSString *currentpath;
+    
+    NSFileManager *filemgr = [NSFileManager defaultManager];
     iTunesSource *dev = nil;
     iTunesPlaylist *devpl = nil;
     NSString *userfilepath = nil;
-    filemgr = [NSFileManager defaultManager];
-    currentpath = [filemgr currentDirectoryPath];
     NSString *flacpath = nil, *metaflacpath = nil, *lamepath = nil;
     
-    parseArgs();
-    exit(0);
+    //parseArgs();
     
     if((dev = getDevice(iTunes)) == nil){
         printf("A usable device doesn't seem to be connected. Woops.\n");
@@ -121,12 +124,11 @@ int main(int argc, const char * argv[])
         printf("Can't find the master playlist on the device. Woops.\n");
         exit(1);
     }
+     
+    findPaths(&flacpath, &metaflacpath, &lamepath);
     
-    findPaths(flacpath, metaflacpath, lamepath);
     //convert();
-    pushToiPod(iTunes, devpl, userfilepath);
-    
-    printf("Please start iTunes and try again.\n");
+    //pushToiPod(iTunes, devpl, userfilepath);
     
     [pool drain];
     return 0;
