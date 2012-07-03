@@ -69,10 +69,10 @@ void findPaths(NSString **flacpath, NSString **metaflacpath, NSString **lamepath
     NSData *outdata = [[output fileHandleForReading] readDataToEndOfFile];
     NSString *fps = [[[NSString alloc] initWithData:outdata encoding:NSUTF8StringEncoding] autorelease];
     [output release];
-    [outdata release];
-    [which release];
+    //[outdata release];
+    //[which release];
     NSArray *filepaths = [fps componentsSeparatedByString:@"\n"];
-    
+    //[fps release];
     //NSLog(@"%@",filepaths);
     
     if([filepaths count]!=4){
@@ -84,7 +84,7 @@ void findPaths(NSString **flacpath, NSString **metaflacpath, NSString **lamepath
     *flacpath = [filepaths objectAtIndex:0];
     *metaflacpath = [filepaths objectAtIndex:1];
     *lamepath = [filepaths objectAtIndex:2];
-    
+    //[filepaths release];
 }
 
 void convert(){
@@ -107,10 +107,10 @@ int main(int argc, const char * argv[]){
         exit(1);
     }
     
-    NSFileManager *filemgr = [NSFileManager defaultManager];
+    //NSFileManager *filemgr = [NSFileManager defaultManager];
     iTunesSource *dev = nil;
     iTunesPlaylist *devpl = nil;
-    NSString *userfilepath = nil;
+    //NSString *userfilepath = nil;
     NSString *flacpath = nil, *metaflacpath = nil, *lamepath = nil;
     
     //parseArgs();
@@ -126,7 +126,7 @@ int main(int argc, const char * argv[]){
     }
      
     findPaths(&flacpath, &metaflacpath, &lamepath);
-    
+    //NSLog(@"%@\n%@\n%@", flacpath, metaflacpath, lamepath);
     //convert();
     //pushToiPod(iTunes, devpl, userfilepath);
     
