@@ -100,20 +100,33 @@ NSString* getTrackMetadata(NSString *mfpath, NSString *flacfile){
     NSString *m = runTask(mfpath, 
                           [NSArray arrayWithObjects:@"--export-tags-to=-", flacfile, nil], 
                           [NSString stringWithFormat:@"Obtaining metadata for %@",[flacfile lastPathComponent]]);
+    //NSLog(@"%@",m);
     NSArray *tags = [m componentsSeparatedByString:@"\n"];
-    NSString *args = @"";
-    NSDictionary *d = [NSDictionary dictionaryWithObjectsAndKeys:@"ARTIST", @"-ta",
-                       @"TITLE", @"-tt",
-                       @"ALBUM",@"-tl",
-                       @"TRACKNUMBER",@"-tn",
-                       @"GENRE",@"-tg",
-                       @"DATE",@"-ty", nil];
+    //NSLog(@"%@",tags);
+    NSMutableString *argstring = [NSMutableString stringWithString:@"\'"];
+    NSDictionary *d = [NSDictionary dictionaryWithObjectsAndKeys:@"-ta", @"ARTIST",
+                       @"-tt",@"TITLE",
+                       @"-tl",@"ALBUM",
+                       @"-tn",@"TRACKNUMBER",
+                       @"-tg",@"GENRE",
+                       @"-ty",@"DATE", nil];
+    //NSLog(@"%@",d);
     
     for(NSString *t in tags){
         NSArray *f = [t componentsSeparatedByString:@"="];
+        //NSLog(@"%@",f);
+        //NSLog(@"is class: %@",[[f objectAtIndex:0] class]);
+        NSString *dasharg = [d objectForKey:[[f objectAtIndex:0] uppercaseString]];
+        NSLog(@"dasharg: %@",dasharg);
+        if(dasharg){
+            [argstring appendString:dasharg];
+            [argstring appendString:@" "];
+            [argstring appendString:[f objectAtIndex:1]];
+        }
     }
-           
-    return @"";
+
+    [argstring appendString:@"\'"];
+    return argstring;
     
 }
 
@@ -152,7 +165,7 @@ int main(int argc, const char * argv[]){
     
     userfilepath = getFilepath();
     
-    if((dev = getDevice(iTunes)) == nil){
+    /*if((dev = getDevice(iTunes)) == nil){
         printf("A usable device doesn't seem to be connected. Woops.\n");
         exit(1);
     }
@@ -161,8 +174,10 @@ int main(int argc, const char * argv[]){
         printf("Can't find the master playlist on the device. Woops.\n");
         exit(1);
     }
-    
+    */
     findPaths(&flacpath, &metaflacpath, &lamepath);
+    NSString *something = getTrackMetadata(metaflacpath, userfilepath);
+    NSLog(@"%@",something);
     //NSLog(@"%@\n%@\n%@", flacpath, metaflacpath, lamepath);
     //convert();
     //pushToiPod(iTunes, devpl, userfilepath);
