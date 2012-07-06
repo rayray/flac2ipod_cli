@@ -103,29 +103,26 @@ NSString* getTrackMetadata(NSString *mfpath, NSString *flacfile){
     //NSLog(@"%@",m);
     NSArray *tags = [m componentsSeparatedByString:@"\n"];
     //NSLog(@"%@",tags);
-    NSMutableString *argstring = [NSMutableString stringWithString:@"\'"];
+    NSMutableString *argstring = [NSMutableString stringWithString:@""];
     NSDictionary *d = [NSDictionary dictionaryWithObjectsAndKeys:@"-ta", @"ARTIST",
                        @"-tt",@"TITLE",
                        @"-tl",@"ALBUM",
                        @"-tn",@"TRACKNUMBER",
                        @"-tg",@"GENRE",
                        @"-ty",@"DATE", nil];
-    //NSLog(@"%@",d);
     
     for(NSString *t in tags){
         NSArray *f = [t componentsSeparatedByString:@"="];
-        //NSLog(@"%@",f);
-        //NSLog(@"is class: %@",[[f objectAtIndex:0] class]);
         NSString *dasharg = [d objectForKey:[[f objectAtIndex:0] uppercaseString]];
         NSLog(@"dasharg: %@",dasharg);
         if(dasharg){
             [argstring appendString:dasharg];
-            [argstring appendString:@" "];
+            [argstring appendString:@" \'"];
             [argstring appendString:[f objectAtIndex:1]];
+            [argstring appendString:@"\' "];
         }
     }
 
-    [argstring appendString:@"\'"];
     return argstring;
     
 }
