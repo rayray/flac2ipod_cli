@@ -77,7 +77,9 @@ NSString* runTask(NSString *path, NSArray *args, NSString *comment){
 }
 
 void findPaths(NSString **flacpath, NSString **metaflacpath, NSString **lamepath){
-    NSString *fps = runTask(@"/usr/bin/which", [NSArray arrayWithObjects:@"flac",@"metaflac",@"lame",nil], @"Finding tools...");
+    NSString *fps = runTask(@"/usr/bin/which", 
+                            [NSArray arrayWithObjects:@"flac",@"metaflac",@"lame",nil], 
+                            @"Finding tools...");
     NSArray *filepaths = [fps componentsSeparatedByString:@"\n"];
     
     if([filepaths count]!=4){
@@ -95,8 +97,22 @@ void findPaths(NSString **flacpath, NSString **metaflacpath, NSString **lamepath
 }
 
 NSString* getTrackMetadata(NSString *mfpath, NSString *flacfile){
-    NSString *m = runTask(mfpath, [NSArray arrayWithObjects:@"--export-tags-to=-", flacfile, nil], [NSString stringWithFormat:@"Obtaining metadata for %@",[flacfile lastPathComponent]]);
-
+    NSString *m = runTask(mfpath, 
+                          [NSArray arrayWithObjects:@"--export-tags-to=-", flacfile, nil], 
+                          [NSString stringWithFormat:@"Obtaining metadata for %@",[flacfile lastPathComponent]]);
+    NSArray *tags = [m componentsSeparatedByString:@"\n"];
+    NSString *args = @"";
+    NSDictionary *d = [NSDictionary dictionaryWithObjectsAndKeys:@"ARTIST", @"-ta",
+                       @"TITLE", @"-tt",
+                       @"ALBUM",@"-tl",
+                       @"TRACKNUMBER",@"-tn",
+                       @"GENRE",@"-tg",
+                       @"DATE",@"-ty", nil];
+    
+    for(NSString *t in tags){
+        NSArray *f = [t componentsSeparatedByString:@"="];
+    }
+           
     return @"";
     
 }
