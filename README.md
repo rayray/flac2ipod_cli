@@ -11,6 +11,13 @@ the MP3s to a connected iPod or iPhone.
 The loaded MP3s bypass the iTunes Library, and after syncing the MP3s
 will be deleted.
 
+##Running Requirements
+- OS X Leopard or later
+- iTunes must be running (that's how it has to be, sorry)
+- `flac`, `metaflac` and `lame` must be installed and available in your bash $PATH
+ - I recommend installing the above with Homebrew (`homebrew install flac` will provide everything you need)
+- And your iPod or iPhone needs to be connected, natch
+
 ##Compiling
 This program uses the Foundation and Scripting Bridge frameworks.
 
@@ -26,10 +33,3 @@ Now compile with:
 `gcc -framework Foundation -framework ScriptingBridge main.m`
 
 This may change in the future.
-
-##Running Requirements
-* OS X Leopard or later
-* iTunes must be running (that's how it has to be, sorry)
-* `flac` and `lame` must be installed and available in your bash $PATH
- * I recommend installing the above with Homebrew (`homebrew install flac` will provide everything you need)
-* And your iPod or iPhone needs to be connected, natch
