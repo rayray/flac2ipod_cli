@@ -16,6 +16,7 @@ NSString* getFilepath(){
         exit(0);
     }
     
+    //NSProcessInfo expands the string for us, no need to massage it
     return [arguments objectAtIndex:1];
 }
 
@@ -123,11 +124,32 @@ NSString* getTrackMetadata(NSString *mfpath, NSString *flacfile){
         }
     }
 
-    return argstring;
+    return argstring;//args for lame
     
 }
 
-NSString* convertTrack(NSString *file){
+NSString* convertTrack(NSString *flacpath, NSString *lamepath, 
+                       NSString *flacfile, NSString *lameargs){
+    NSString *pathForMP3 = [flacfile stringByDeletingLastPathComponent];
+    //NSLog(@"%@",[[flacfile lastPathComponent] stringByDeletingLastPathComponent]);
+    NSString *filenameForMP3 = [[flacfile lastPathComponent] stringByDeletingPathExtension];
+    //NSLog(@"%@",filenameForMP3);
+    NSString *mp3path = [NSString stringWithFormat:@"\'%@/%@.mp3\'",pathForMP3,filenameForMP3];
+    NSLog(@"mp3path: %@",mp3path);
+    NSString *qflacfile = [NSString stringWithFormat:@"\'%@\'",flacfile];
+    NSLog(@"qflacfile: %@",qflacfile);
+    
+    NSTask *flac = [[NSTask alloc] init];
+    NSTask *lame = [[NSTask alloc] init];
+    
+    NSPipe *pipeToLame = [NSPipe pipe];
+    NSPipe *finalOutput = [NSPipe pipe];
+    
+    [flac setLaunchPath:flacpath];
+    [flac setArguments:[NSArray arrayWithObjects:@"-sdc",qflacfile,nil]];
+    [lame setLaunchPath:lamepath];
+    [lame setArguments:[NSArray arrayWithObjects:@"-V0",lameargs,"-",mp3path, nil]];
+    
     return @"";//path to mp3
 }
 
@@ -173,8 +195,10 @@ int main(int argc, const char * argv[]){
     }
     */
     findPaths(&flacpath, &metaflacpath, &lamepath);
-    NSString *something = getTrackMetadata(metaflacpath, userfilepath);
-    NSLog(@"%@",something);
+    NSString *lameargs = getTrackMetadata(metaflacpath, userfilepath);
+    NSLog(@"lameargs in main: %@",lameargs);
+    NSString *pathtomp3 = convertTrack(flacpath, lamepath, userfilepath, lameargs);
+    NSLog(@"pathtomp3 in main: %@",pathtomp3);
     //NSLog(@"%@\n%@\n%@", flacpath, metaflacpath, lamepath);
     //convert();
     //pushToiPod(iTunes, devpl, userfilepath);
