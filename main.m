@@ -6,6 +6,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#include "stdlib.h"
 #import "iTunes.h"
 
 NSString* getFilepath(){
@@ -130,12 +131,15 @@ NSString* getTrackMetadata(NSString *mfpath, NSString *flacfile){
 
 NSString* convertTrack(NSString *flacpath, NSString *lamepath, 
                        NSString *flacfile, NSString *lameargs){
+    u_int32_t randomNum = arc4random_uniform(1000);//while im testing
+    
     NSString *pathForMP3 = [flacfile stringByDeletingLastPathComponent];
     //NSLog(@"%@",[[flacfile lastPathComponent] stringByDeletingLastPathComponent]);
     NSString *filenameForMP3 = [[flacfile lastPathComponent] stringByDeletingPathExtension];
     //NSLog(@"%@",filenameForMP3);
-    NSString *mp3path = [NSString stringWithFormat:@"\'%@/%@.mp3\'",pathForMP3,filenameForMP3];
-    NSLog(@"mp3path: %@",mp3path);
+    NSString *qmp3file = [NSString stringWithFormat:@"\'%@/%@-%d.mp3\'",pathForMP3,filenameForMP3,randomNum];
+    NSString *mp3file = [NSString stringWithFormat:@"%@/%@-%d.mp3",pathForMP3,filenameForMP3,randomNum];
+    NSLog(@"qmp3file: %@",qmp3file);
     NSString *qflacfile = [NSString stringWithFormat:@"\'%@\'",flacfile];
     NSLog(@"qflacfile: %@",qflacfile);
     
@@ -147,10 +151,25 @@ NSString* convertTrack(NSString *flacpath, NSString *lamepath,
     
     [flac setLaunchPath:flacpath];
     [flac setArguments:[NSArray arrayWithObjects:@"-sdc",qflacfile,nil]];
+    [flac setStandardOutput:pipeToLame];
     [lame setLaunchPath:lamepath];
-    [lame setArguments:[NSArray arrayWithObjects:@"-V0",lameargs,"-",mp3path, nil]];
+    [lame setArguments:[NSArray arrayWithObjects:@"-V0",lameargs,"-",qmp3file, nil]];
+    [lame setStandardInput:pipeToLame];
+    [lame setStandardOutput:finalOutput];
+    printf("Converting %s\n",[flacfile UTF8String]);
+    [flac launch];
+    [lame launch];
     
-    return @"";//path to mp3
+    NSData *lameout = [[finalOutput fileHandleForReading] readDataToEndOfFile];
+    
+    if([[NSFileManager defaultManager] fileExistsAtPath:mp3file]){
+        printf("%s finished\n",[mp3file UTF8String]);
+        return mp3file;
+    }
+    else{
+        printf("Converting %s failed.\n",[flacfile UTF8String]);
+        return nil;
+    }
 }
 
 void pushToiPod(iTunesApplication *iTunes, iTunesPlaylist *devpl, NSString *file){
