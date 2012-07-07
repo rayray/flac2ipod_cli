@@ -118,10 +118,9 @@ NSString* getTrackMetadata(NSString *mfpath, NSString *flacfile){
         NSString *dasharg = [d objectForKey:[[f objectAtIndex:0] uppercaseString]];
         NSLog(@"dasharg: %@",dasharg);
         if(dasharg){
-            [argstring appendString:dasharg];
-            [argstring appendString:@" \'"];
-            [argstring appendString:[f objectAtIndex:1]];
-            [argstring appendString:@"\' "];
+            [argstring appendFormat:@"%@ \'%@\' ",
+             dasharg,[[f objectAtIndex:1] stringByReplacingOccurrencesOfString:@"'" 
+                                                                    withString:@"\\'"]];
         }
     }
 
