@@ -136,8 +136,10 @@ NSString* convertTrack(NSString *flacpath, NSString *lamepath,
     //NSLog(@"%@",[[flacfile lastPathComponent] stringByDeletingLastPathComponent]);
     NSString *filenameForMP3 = [[flacfile lastPathComponent] stringByDeletingPathExtension];
     //NSLog(@"%@",filenameForMP3);
-    NSString *qmp3file = [NSString stringWithFormat:@"\'%@/%@-%d.mp3\'",pathForMP3,filenameForMP3,randomNum];
     NSString *mp3file = [NSString stringWithFormat:@"%@/%@-%d.mp3",pathForMP3,filenameForMP3,randomNum];
+    mp3file = [mp3file stringByReplacingOccurrencesOfString:@"'" 
+                                                 withString:@"\\'"];
+    NSString *qmp3file = [NSString stringWithFormat:@"\'%@\'",mp3file];
     NSLog(@"qmp3file: %@",qmp3file);
     NSString *qflacfile = [NSString stringWithFormat:@"\'%@\'",flacfile];
     NSLog(@"qflacfile: %@",qflacfile);
