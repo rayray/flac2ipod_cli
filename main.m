@@ -6,7 +6,7 @@
 //
 
 #import <Foundation/Foundation.h>
-#include "stdlib.h"
+#import "stdlib.h"
 #import "iTunes.h"
 
 NSString* getFilepath(){
@@ -17,8 +17,11 @@ NSString* getFilepath(){
         exit(0);
     }
     
+    NSString *path = [[arguments objectAtIndex:1] stringByExpandingTildeInPath];
     //NSProcessInfo expands the string for us, no need to massage it
-    return [arguments objectAtIndex:1];
+    //return [[arguments objectAtIndex:1] stringByExpandingTildeInPath];
+    return [[NSFileManager defaultManager] stringWithFileSystemRepresentation:[path UTF8String] 
+                                                                       length:[path length]];
 }
 
 iTunesSource* getDevice(iTunesApplication *iTunes){
@@ -79,7 +82,7 @@ NSString* runTask(NSString *path, NSArray *args, NSString *comment){
 }
 
 void findPaths(NSString **flacpath, NSString **metaflacpath, NSString **lamepath){
-    NSString *fps = runTask(@"/usr/bin/which", 
+  /*  NSString *fps = runTask(@"/usr/bin/which", 
                             [NSArray arrayWithObjects:@"flac",@"metaflac",@"lame",nil], 
                             @"Finding tools...");
     NSArray *filepaths = [fps componentsSeparatedByString:@"\n"];
@@ -96,9 +99,15 @@ void findPaths(NSString **flacpath, NSString **metaflacpath, NSString **lamepath
     printf("metaflac: %s\n", [*metaflacpath UTF8String]);
     *lamepath = [filepaths objectAtIndex:2];
     printf("lame: %s\n", [*lamepath UTF8String]);
+    */
+    
+    //FOR TESTING IN XCODE
+    *flacpath = @"/usr/local/bin/flac";
+    *metaflacpath = @"/usr/local/bin/metaflac";
+    *lamepath = @"/usr/local/bin/lame";
 }
 
-NSString* getTrackMetadata(NSString *mfpath, NSString *flacfile){
+NSMutableArray* getTrackMetadata(NSString *mfpath, NSString *flacfile){
     NSString *m = runTask(mfpath, 
                           [NSArray arrayWithObjects:@"--export-tags-to=-", flacfile, nil], 
                           [NSString stringWithFormat:@"Obtaining metadata for %@",[flacfile lastPathComponent]]);
@@ -106,6 +115,7 @@ NSString* getTrackMetadata(NSString *mfpath, NSString *flacfile){
     NSArray *tags = [m componentsSeparatedByString:@"\n"];
     //NSLog(@"%@",tags);
     NSMutableString *argstring = [NSMutableString stringWithString:@""];
+    NSMutableArray *args = [[NSMutableArray alloc] init];
     NSDictionary *d = [NSDictionary dictionaryWithObjectsAndKeys:@"-ta", @"ARTIST",
                        @"-tt",@"TITLE",
                        @"-tl",@"ALBUM",
@@ -118,31 +128,44 @@ NSString* getTrackMetadata(NSString *mfpath, NSString *flacfile){
         NSString *dasharg = [d objectForKey:[[f objectAtIndex:0] uppercaseString]];
         NSLog(@"dasharg: %@",dasharg);
         if(dasharg){
+            [args addObject:dasharg];
+            [args addObject:[f objectAtIndex:1]];
             [argstring appendFormat:@"%@ \'%@\' ",
              dasharg,[[f objectAtIndex:1] stringByReplacingOccurrencesOfString:@"'" 
                                                                     withString:@"\\'"]];
         }
     }
-
-    return argstring;//args for lame
+    //NSLog(@"%@",args);
+    return args;//args for lame
     
 }
 
 NSString* convertTrack(NSString *flacpath, NSString *lamepath, 
-                       NSString *flacfile, NSString *lameargs){
+                       NSString *flacfile, NSMutableArray *metadata){
     u_int32_t randomNum = arc4random_uniform(1000);//while im testing
-    
     NSString *pathForMP3 = [flacfile stringByDeletingLastPathComponent];
-    //NSLog(@"%@",[[flacfile lastPathComponent] stringByDeletingLastPathComponent]);
     NSString *filenameForMP3 = [[flacfile lastPathComponent] stringByDeletingPathExtension];
     //NSLog(@"%@",filenameForMP3);
     NSString *mp3file = [NSString stringWithFormat:@"%@/%@-%d.mp3",pathForMP3,filenameForMP3,randomNum];
-    mp3file = [mp3file stringByReplacingOccurrencesOfString:@"'" 
-                                                 withString:@"\\'"];
-    NSString *qmp3file = [NSString stringWithFormat:@"\'%@\'",mp3file];
-    NSLog(@"qmp3file: %@",qmp3file);
-    NSString *qflacfile = [NSString stringWithFormat:@"\'%@\'",flacfile];
-    NSLog(@"qflacfile: %@",qflacfile);
+    //mp3file = [mp3file stringByReplacingOccurrencesOfString:@"'" 
+    //                                             withString:@"\\'"];
+    //NSString *qmp3file = [[NSString stringWithFormat:@"\'%@\'",mp3file] retain];
+    //NSLog(@"qmp3file: %@",qmp3file);
+    //NSString *qflacfile = [NSString stringWithFormat:@"\"%@\"",flacfile];
+    //NSLog(@"qflacfile: %@",qflacfile);
+    
+    //NSString *ffwithspaces = [flacfile stringByReplacingOccurrencesOfString:@" " withString:@"\\ "];
+    
+    NSMutableArray *lameargs = [NSMutableArray arrayWithObjects:@"-V0",@"-",mp3file,nil];
+    
+    int index = 1;
+    
+    //for(NSString *s in metadata){
+    //    [lameargs insertObject:s atIndex:index];
+    //    index++;
+    //}
+    NSLog(@"lameargs in convert = %@",lameargs);
+    
     
     NSTask *flac = [[NSTask alloc] init];
     NSTask *lame = [[NSTask alloc] init];
@@ -150,11 +173,14 @@ NSString* convertTrack(NSString *flacpath, NSString *lamepath,
     NSPipe *pipeToLame = [NSPipe pipe];
     NSPipe *finalOutput = [NSPipe pipe];
     
+    //NSLog(@"setting launch path");
     [flac setLaunchPath:flacpath];
-    [flac setArguments:[NSArray arrayWithObjects:@"-sdc",qflacfile,nil]];
+    //NSLog(@"setting args for flac");
+    [flac setArguments:[NSArray arrayWithObjects:@"-sdc",flacfile,nil]];
+    //NSLog(@"setting stdout for flac");
     [flac setStandardOutput:pipeToLame];
     [lame setLaunchPath:lamepath];
-    [lame setArguments:[NSArray arrayWithObjects:@"-V0",lameargs,"-",qmp3file, nil]];
+    [lame setArguments:[NSArray arrayWithArray:lameargs]];
     [lame setStandardInput:pipeToLame];
     [lame setStandardOutput:finalOutput];
     printf("Converting %s\n",[flacfile UTF8String]);
@@ -163,6 +189,9 @@ NSString* convertTrack(NSString *flacpath, NSString *lamepath,
     
     NSData *lameout = [[finalOutput fileHandleForReading] readDataToEndOfFile];
     
+    //[flac release];
+    //[lame release];
+    
     if([[NSFileManager defaultManager] fileExistsAtPath:mp3file]){
         printf("%s finished\n",[mp3file UTF8String]);
         return mp3file;
@@ -170,7 +199,9 @@ NSString* convertTrack(NSString *flacpath, NSString *lamepath,
     else{
         printf("Converting %s failed.\n",[flacfile UTF8String]);
         return nil;
-    }
+    } 
+    
+    //return @"";
 }
 
 void pushToiPod(iTunesApplication *iTunes, iTunesPlaylist *devpl, NSString *file){
@@ -203,6 +234,7 @@ int main(int argc, const char * argv[]){
     NSString *flacpath = nil, *metaflacpath = nil, *lamepath = nil;
     
     userfilepath = getFilepath();
+    NSLog(@"userfilepath = %@",userfilepath);
     
     /*if((dev = getDevice(iTunes)) == nil){
         printf("A usable device doesn't seem to be connected. Woops.\n");
@@ -215,8 +247,8 @@ int main(int argc, const char * argv[]){
     }
     */
     findPaths(&flacpath, &metaflacpath, &lamepath);
-    NSString *lameargs = getTrackMetadata(metaflacpath, userfilepath);
-    NSLog(@"lameargs in main: %@",lameargs);
+    NSMutableArray *lameargs = getTrackMetadata(metaflacpath, userfilepath);
+    //NSLog(@"lameargs in main: %@",lameargs);
     NSString *pathtomp3 = convertTrack(flacpath, lamepath, userfilepath, lameargs);
     NSLog(@"pathtomp3 in main: %@",pathtomp3);
     //NSLog(@"%@\n%@\n%@", flacpath, metaflacpath, lamepath);
