@@ -2,7 +2,7 @@
 
 ## This isn't ready for use yet.
 
-**Current status:** successfully adds MP3s to iPod, working on conversion now
+**Current status:** 60% finished, conversion and syncing works, need to add proper filehandling
 
 This is a command line program that will accept either FLAC file(s) or a 
 directory of FLACs as an argument, convert the FLAC(s) to MP3s, and load
