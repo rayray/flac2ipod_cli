@@ -9,18 +9,75 @@
 #import "stdlib.h"
 #import "iTunes.h"
 
-NSString* getFilepath(){
+//global flags
+BOOL dealWithiTunes = NO;
+BOOL inXcode = NO;
+//============
+
+NSMutableArray *getFLACsFromDirectory(NSString *path){
+    NSMutableArray *files = [[NSMutableArray alloc] init];
+    return files;
+}
+
+NSArray* getFileList(){
     NSArray *arguments = [[NSProcessInfo processInfo] arguments];
     
     if([arguments count] < 2){
-        printf("Usage: flac2ipod [flacFILE | flacDIR]\n");
+        printf("Usage: flac2ipod [flacFILE | flacDIR]\n\tTry --help for more info.\n");
         exit(0);
     }
     
-    NSString *path = [[arguments objectAtIndex:1] stringByExpandingTildeInPath];
+    if([[arguments objectAtIndex:1] isEqualToString:@"--help"]){
+        printf("Usage: flac2ipod [options] [flacFILE | flacDIR]\n");
+        printf("Options:\n");
+        printf("\t-t\tMake the app open and close iTunes\n");
+        printf("\t-x\tXcode mode; the app will make some\n\t\tassumptions about paths to binaries\n");
+        exit(1);
+    }
     
-    return [[NSFileManager defaultManager] stringWithFileSystemRepresentation:[path UTF8String] 
-                                                                       length:[path length]];
+    NSMutableArray *files = [[NSMutableArray alloc] init];
+    NSString *dirpath = [[NSString alloc] init];
+    BOOL isDir;
+    BOOL singleFiles = NO;
+    
+    for (NSString *s in arguments){
+        if([s hasPrefix:@"-"] && [s length]==2){
+            if([s isEqualToString:@"-x"]) inXcode = YES;
+            else if([s isEqualToString:@"-t"]) dealWithiTunes = YES;
+            else {
+                printf("%s not recognized. Try --help.\n",[s UTF8String]);
+                exit(1);
+            }
+        }
+        else{
+            s = [s stringByExpandingTildeInPath];
+            if([[NSFileManager defaultManager] fileExistsAtPath:s isDirectory:&isDir]){
+                if(isDir){
+                    if(!singleFiles){
+                        dirpath = s;
+                        break;
+                    }
+                    else{
+                        printf("Only a sequence of files or one directory is allowed.\n");
+                        exit(1);
+                    }
+                }
+                else{
+                    singleFiles = YES;//prevent user from adding a directory now
+                    [files addObject:s];
+                }
+            }
+            else{
+                printf("%s doesn't appear to exist.\n", [s UTF8String]);
+            }
+        }
+    }
+    
+    if(isDir) files = getFLACsFromDirectory(dirpath);
+    
+    return files;
+    //return [[NSFileManager defaultManager] stringWithFileSystemRepresentation:[path UTF8String] 
+    //                                                                   length:[path length]];
 }
 
 iTunesSource* getDevice(iTunesApplication *iTunes){
@@ -81,29 +138,31 @@ NSString* runTask(NSString *path, NSArray *args, NSString *comment){
 }
 
 void findPaths(NSString **flacpath, NSString **metaflacpath, NSString **lamepath){
-  /*  NSString *fps = runTask(@"/usr/bin/which", 
+    
+    if(inXcode){
+        *flacpath = @"/usr/local/bin/flac";
+        *metaflacpath = @"/usr/local/bin/metaflac";
+        *lamepath = @"/usr/local/bin/lame";
+    }
+    else{
+        NSString *fps = runTask(@"/usr/bin/which", 
                             [NSArray arrayWithObjects:@"flac",@"metaflac",@"lame",nil], 
                             @"Finding tools...");
-    NSArray *filepaths = [fps componentsSeparatedByString:@"\n"];
+        NSArray *filepaths = [fps componentsSeparatedByString:@"\n"];
     
-    if([filepaths count]!=4){
-        printf("Didn't find all paths.\n");
-        printf("Please ensure flac, metaflac, and lame are installed and are available in $PATH.\n");
-        exit(1);
+        if([filepaths count]!=4){
+            printf("Didn't find all paths.\n");
+            printf("Please ensure flac, metaflac, and lame are installed and are available in $PATH.\n");
+            exit(1);
+        }
+    
+        *flacpath = [filepaths objectAtIndex:0];
+        printf("flac: %s\n", [*flacpath UTF8String]);
+        *metaflacpath = [filepaths objectAtIndex:1];
+        printf("metaflac: %s\n", [*metaflacpath UTF8String]);
+        *lamepath = [filepaths objectAtIndex:2];
+        printf("lame: %s\n", [*lamepath UTF8String]);
     }
-    
-    *flacpath = [filepaths objectAtIndex:0];
-    printf("flac: %s\n", [*flacpath UTF8String]);
-    *metaflacpath = [filepaths objectAtIndex:1];
-    printf("metaflac: %s\n", [*metaflacpath UTF8String]);
-    *lamepath = [filepaths objectAtIndex:2];
-    printf("lame: %s\n", [*lamepath UTF8String]);
-    */
-    
-    //FOR TESTING IN XCODE
-    *flacpath = @"/usr/local/bin/flac";
-    *metaflacpath = @"/usr/local/bin/metaflac";
-    *lamepath = @"/usr/local/bin/lame";
 }
 
 NSMutableArray* getTrackMetadata(NSString *mfpath, NSString *flacfile){
@@ -174,15 +233,19 @@ NSString* convertTrack(NSString *flacpath, NSString *lamepath,
     [lame setArguments:[NSArray arrayWithArray:lameargs]];
     [lame setStandardInput:pipeToLame];
     [lame setStandardOutput:finalOutput];
+    [lame setStandardError:finalOutput];//because LAME seems to print to stderr even when nothing is wrong
     printf("Converting %s\n",[flacfile UTF8String]);
     [flac launch];
     [lame launch];
     
     NSData *lameout = [[finalOutput fileHandleForReading] readDataToEndOfFile];
+    //NSString *lameooutstring = [[[NSString alloc] initWithData:lameout encoding:NSUTF8StringEncoding] autorelease];
 
+    [pipeToLame release];
+    [finalOutput release];
     
     if([[NSFileManager defaultManager] fileExistsAtPath:mp3file]){
-        printf("%s finished\n",[mp3file UTF8String]);
+        printf(" - %s finished\n",[mp3file UTF8String]);
         return mp3file;
     }
     else{
@@ -207,23 +270,23 @@ BOOL f2i(){
 int main(int argc, const char * argv[]){
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     iTunesApplication *iTunes = [SBApplication applicationWithBundleIdentifier:@"com.apple.iTunes"];
-    //BOOL closeiTunesOnExit = NO;
     
     if(![iTunes isRunning]){
-        //closeiTunesOnExit = YES;
-        //[iTunes run];
-        printf("Please start iTunes and try again.\n");
-        exit(1);
+        if(dealWithiTunes) [iTunes run];
+        else{
+            printf("Please start iTunes and try again, or use \"-t\".\n");
+            exit(1);
+        }
+        
     }
     
     //NSFileManager *filemgr = [NSFileManager defaultManager];
     iTunesSource *dev = nil;
     iTunesPlaylist *devpl = nil;
-    NSString *userfilepath = nil;
+    NSArray *filelist = nil;
     NSString *flacpath = nil, *metaflacpath = nil, *lamepath = nil;
     
-    userfilepath = getFilepath();
-    //NSLog(@"userfilepath = %@",userfilepath);
+    filelist = getFileList();
     
     /*if((dev = getDevice(iTunes)) == nil){
         printf("A usable device doesn't seem to be connected. Woops.\n");
@@ -236,15 +299,12 @@ int main(int argc, const char * argv[]){
     }
     */
     findPaths(&flacpath, &metaflacpath, &lamepath);
-    NSMutableArray *lameargs = getTrackMetadata(metaflacpath, userfilepath);
-    //NSLog(@"lameargs in main: %@",lameargs);
-    NSString *pathtomp3 = convertTrack(flacpath, lamepath, userfilepath, lameargs);
-    //NSLog(@"pathtomp3 in main: %@",pathtomp3);
-    //NSLog(@"%@\n%@\n%@", flacpath, metaflacpath, lamepath);
+    //NSMutableArray *lameargs = getTrackMetadata(metaflacpath, userfilepath);
+    //NSString *pathtomp3 = convertTrack(flacpath, lamepath, userfilepath, lameargs);
     //convert();
     //pushToiPod(iTunes, devpl, userfilepath);
     
-    //if(closeiTunesOnExit) [iTunes quit];
+    if(dealWithiTunes) [iTunes quit];
     
     [pool drain];
     return 0;
