@@ -30,6 +30,6 @@ The `iTunes.h` header should be in your current folder.
 
 Now compile with:
 
-`gcc -framework Foundation -framework ScriptingBridge main.m`
+`gcc -std=c99 -framework Foundation -framework ScriptingBridge main.m`
 
 This may change in the future.
