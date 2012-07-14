@@ -16,7 +16,25 @@ BOOL ignoreiPod = YES;
 //============
 
 NSMutableArray *getFLACsFromDirectory(NSString *path){
+    
+    if(![path hasSuffix:@"/"]) path = [NSString stringWithFormat:@"%@/",path];
+    
     NSMutableArray *files = [[NSMutableArray alloc] init];
+    NSFileManager *fm = [NSFileManager defaultManager];
+    NSArray *filelist = [fm contentsOfDirectoryAtPath:path error:nil];
+    
+    //NSLog(@"filelist = %@",filelist);
+    
+    printf("Searching %s for FLACs\n", [path UTF8String]);
+    for(NSString *s in filelist){
+        if(![[s pathExtension] caseInsensitiveCompare:@"flac"]){
+            NSString *pathtoflacfile = [NSString stringWithFormat:@"%@%@",path,s];
+            [files addObject:pathtoflacfile];
+        }
+    }
+    
+    printf("Found %d files.\n",[files count]);
+    
     return files;
 }
 
