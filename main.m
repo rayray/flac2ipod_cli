@@ -12,6 +12,7 @@
 //global flags
 BOOL dealWithiTunes = NO;
 BOOL inXcode = NO;
+BOOL ignoreiPod = YES;
 //============
 
 NSMutableArray *getFLACsFromDirectory(NSString *path){
@@ -19,7 +20,7 @@ NSMutableArray *getFLACsFromDirectory(NSString *path){
     return files;
 }
 
-NSArray* getFileList(){
+NSArray* parseArgsAndGetFileList(){
     NSArray *arguments = [[NSProcessInfo processInfo] arguments];
     
     if([arguments count] < 2){
@@ -40,9 +41,14 @@ NSArray* getFileList(){
     BOOL isDir;
     BOOL singleFiles = NO;
     
-    for (NSString *s in arguments){
+    for(int i=1; i < [arguments count]; i++){
+        NSString *s = [arguments objectAtIndex:i];
+        
         if([s hasPrefix:@"-"] && [s length]==2){
-            if([s isEqualToString:@"-x"]) inXcode = YES;
+            if([s isEqualToString:@"-x"]){
+                inXcode = YES;
+                NSLog(@"Xcode mode.");
+            }
             else if([s isEqualToString:@"-t"]) dealWithiTunes = YES;
             else {
                 printf("%s not recognized. Try --help.\n",[s UTF8String]);
@@ -55,6 +61,7 @@ NSArray* getFileList(){
                 if(isDir){
                     if(!singleFiles){
                         dirpath = s;
+                        files = getFLACsFromDirectory(dirpath);
                         break;
                     }
                     else{
@@ -67,13 +74,12 @@ NSArray* getFileList(){
                     [files addObject:s];
                 }
             }
-            else{
-                printf("%s doesn't appear to exist.\n", [s UTF8String]);
-            }
+            
+            else printf("%s doesn't appear to exist.\n", [s UTF8String]);
         }
     }
     
-    if(isDir) files = getFLACsFromDirectory(dirpath);
+    NSLog(@"%@",files);
     
     return files;
     //return [[NSFileManager defaultManager] stringWithFileSystemRepresentation:[path UTF8String] 
@@ -286,18 +292,20 @@ int main(int argc, const char * argv[]){
     NSArray *filelist = nil;
     NSString *flacpath = nil, *metaflacpath = nil, *lamepath = nil;
     
-    filelist = getFileList();
+    filelist = parseArgsAndGetFileList();
     
-    /*if((dev = getDevice(iTunes)) == nil){
+    if(ignoreiPod) printf("Testing mode. Ignoring iPod.\n");
+    
+    if(!ignoreiPod&&(dev = getDevice(iTunes))){
         printf("A usable device doesn't seem to be connected. Woops.\n");
         exit(1);
     }
     
-    if((devpl = getDevicePlaylist(dev)) == nil){
+    if(!ignoreiPod&&(devpl = getDevicePlaylist(dev))){
         printf("Can't find the master playlist on the device. Woops.\n");
         exit(1);
     }
-    */
+    
     findPaths(&flacpath, &metaflacpath, &lamepath);
     //NSMutableArray *lameargs = getTrackMetadata(metaflacpath, userfilepath);
     //NSString *pathtomp3 = convertTrack(flacpath, lamepath, userfilepath, lameargs);
