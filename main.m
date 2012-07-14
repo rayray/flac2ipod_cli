@@ -233,16 +233,10 @@ NSString* convertTrack(NSString *flacpath, NSString *lamepath,
     
     int index = 1;
     
-    for(index = 1; index < 3; index++){
-        [lameargs insertObject:[metadata objectAtIndex:(index-1)] atIndex:index];
-    }
-    
     for(NSString *s in metadata){
         [lameargs insertObject:s atIndex:index];
         index++;
     }
-    //NSLog(@"lameargs in convert = %@",lameargs);
-    
     
     NSTask *flac = [[NSTask alloc] init];
     NSTask *lame = [[NSTask alloc] init];
@@ -301,10 +295,8 @@ int main(int argc, const char * argv[]){
             printf("Please start iTunes and try again, or use \"-t\".\n");
             exit(1);
         }
-        
     }
     
-    //NSFileManager *filemgr = [NSFileManager defaultManager];
     iTunesSource *dev = nil;
     iTunesPlaylist *devpl = nil;
     NSArray *filelist = nil;
