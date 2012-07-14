@@ -222,8 +222,10 @@ NSMutableArray* getTrackMetadata(NSString *mfpath, NSString *flacfile){
     
 }
 
-NSString* convertTrack(NSString *flacpath, NSString *lamepath, 
-                       NSString *flacfile, NSMutableArray *metadata){
+NSString* convertTrack(NSString *flacpath, NSString *metaflacpath, 
+                       NSString *lamepath, NSString *flacfile){
+    NSMutableArray *metadata = getTrackMetadata(metaflacpath, flacfile);
+    
     u_int32_t randomNum = arc4random_uniform(1000);//while im testing
     NSString *pathForMP3 = [flacfile stringByDeletingLastPathComponent];
     NSString *filenameForMP3 = [[flacfile lastPathComponent] stringByDeletingPathExtension];
@@ -257,7 +259,6 @@ NSString* convertTrack(NSString *flacpath, NSString *lamepath,
     [lame launch];
     
     NSData *lameout = [[finalOutput fileHandleForReading] readDataToEndOfFile];
-    //NSString *lameooutstring = [[[NSString alloc] initWithData:lameout encoding:NSUTF8StringEncoding] autorelease];
 
     [pipeToLame release];
     [finalOutput release];
@@ -270,8 +271,6 @@ NSString* convertTrack(NSString *flacpath, NSString *lamepath,
         printf("Converting %s failed.\n",[flacfile UTF8String]);
         return nil;
     } 
-    
-    //return @"";
 }
 
 void pushToiPod(iTunesApplication *iTunes, iTunesPlaylist *devpl, NSString *file){
@@ -281,8 +280,17 @@ void pushToiPod(iTunesApplication *iTunes, iTunesPlaylist *devpl, NSString *file
     NSLog(@"track is: %@", track);
 }
 
-BOOL f2i(){
-    return NO;
+NSArray* flacs2mp3s(NSArray *filelist, NSString *flacpath, NSString *metaflacpath, NSString *lamepath){
+    
+    NSMutableArray *mp3s = [[NSMutableArray alloc] init];
+    
+    for(NSString *s in filelist){
+        NSString *pathToNewMP3 = convertTrack(flacpath, metaflacpath, lamepath, s);
+        
+        if(pathToNewMP3 != nil) [mp3s addObject:pathToNewMP3];
+    }
+    
+    return mp3s;
 }
 
 int main(int argc, const char * argv[]){
@@ -299,12 +307,12 @@ int main(int argc, const char * argv[]){
     
     iTunesSource *dev = nil;
     iTunesPlaylist *devpl = nil;
-    NSArray *filelist = nil;
+    NSArray *filelist = nil, *mp3s = nil;
     NSString *flacpath = nil, *metaflacpath = nil, *lamepath = nil;
     
-    filelist = parseArgsAndGetFileList();
-    
     if(ignoreiPod) printf("Testing mode. Ignoring iPod.\n");
+    
+    filelist = parseArgsAndGetFileList();
     
     if(!ignoreiPod&&(dev = getDevice(iTunes))){
         printf("A usable device doesn't seem to be connected. Woops.\n");
@@ -317,10 +325,8 @@ int main(int argc, const char * argv[]){
     }
     
     findPaths(&flacpath, &metaflacpath, &lamepath);
-    //NSMutableArray *lameargs = getTrackMetadata(metaflacpath, userfilepath);
-    //NSString *pathtomp3 = convertTrack(flacpath, lamepath, userfilepath, lameargs);
-    //convert();
-    //pushToiPod(iTunes, devpl, userfilepath);
+    mp3s = flacs2mp3s(filelist, flacpath, metaflacpath, lamepath);
+    //pushToiPod(iTunes, devpl, mp3s);
     
     if(dealWithiTunes) [iTunes quit];
     
