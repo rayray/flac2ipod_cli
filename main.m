@@ -6,7 +6,6 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "stdlib.h"
 #import "iTunes.h"
 
 //global flags
@@ -226,10 +225,9 @@ NSString* convertTrack(NSString *flacpath, NSString *metaflacpath,
                        NSString *lamepath, NSString *flacfile){
     NSMutableArray *metadata = getTrackMetadata(metaflacpath, flacfile);
     
-    u_int32_t randomNum = arc4random_uniform(1000);//while im testing
     NSString *pathForMP3 = [flacfile stringByDeletingLastPathComponent];
     NSString *filenameForMP3 = [[flacfile lastPathComponent] stringByDeletingPathExtension];
-    NSString *mp3file = [NSString stringWithFormat:@"%@/%@-%d.mp3",pathForMP3,filenameForMP3,randomNum];
+    NSString *mp3file = [NSString stringWithFormat:@"%@/%@.mp3",pathForMP3,filenameForMP3];
         
     NSMutableArray *lameargs = [NSMutableArray arrayWithObjects:@"-V0",@"-",mp3file,nil];
     
