@@ -271,11 +271,16 @@ NSString* convertTrack(NSString *flacpath, NSString *metaflacpath,
     } 
 }
 
-void pushToiPod(iTunesApplication *iTunes, iTunesPlaylist *devpl, NSString *file){
+void pushToiPod(iTunesApplication *iTunes, iTunesPlaylist *devpl, NSArray *mp3s){
     //let's try adding something
-    iTunesTrack *track = [iTunes add:[NSArray arrayWithObject:[NSURL fileURLWithPath:file]]
-                                  to:devpl];
-    NSLog(@"track is: %@", track);
+    
+    for(NSString *s in mp3s){
+        iTunesTrack *track = [iTunes add:[NSArray arrayWithObject:[NSURL fileURLWithPath:s]]
+                                      to:devpl];
+        NSLog(@"track is: %@", track);
+    }
+    
+    
 }
 
 NSArray* flacs2mp3s(NSArray *filelist, NSString *flacpath, NSString *metaflacpath, NSString *lamepath){
@@ -338,7 +343,7 @@ int main(int argc, const char * argv[]){
     
     findPaths(&flacpath, &metaflacpath, &lamepath);
     mp3s = flacs2mp3s(filelist, flacpath, metaflacpath, lamepath);
-    //pushToiPod(iTunes, devpl, mp3s);
+    pushToiPod(iTunes, devpl, mp3s);
     trash(mp3s);
     
     if(dealWithiTunes) [iTunes quit];
