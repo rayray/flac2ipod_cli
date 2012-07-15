@@ -291,6 +291,20 @@ NSArray* flacs2mp3s(NSArray *filelist, NSString *flacpath, NSString *metaflacpat
     return mp3s;
 }
 
+void trash(NSArray *mp3s){
+    NSFileManager *fm = [NSFileManager defaultManager];
+    NSError *error;
+    printf("Now deleting the MP3s we created.\n");
+    
+    BOOL success;
+    
+    for(NSString *s in mp3s){
+        success = [fm removeItemAtPath:s error:&error];
+        
+        if(!success && error) NSLog(@"Error: %@",error);
+    }
+}
+
 int main(int argc, const char * argv[]){
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     iTunesApplication *iTunes = [SBApplication applicationWithBundleIdentifier:@"com.apple.iTunes"];
@@ -325,6 +339,7 @@ int main(int argc, const char * argv[]){
     findPaths(&flacpath, &metaflacpath, &lamepath);
     mp3s = flacs2mp3s(filelist, flacpath, metaflacpath, lamepath);
     //pushToiPod(iTunes, devpl, mp3s);
+    //trash(mp3s);
     
     if(dealWithiTunes) [iTunes quit];
     
