@@ -339,7 +339,7 @@ int main(int argc, const char * argv[]){
     findPaths(&flacpath, &metaflacpath, &lamepath);
     mp3s = flacs2mp3s(filelist, flacpath, metaflacpath, lamepath);
     //pushToiPod(iTunes, devpl, mp3s);
-    //trash(mp3s);
+    trash(mp3s);
     
     if(dealWithiTunes) [iTunes quit];
     
