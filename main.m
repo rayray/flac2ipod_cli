@@ -11,7 +11,7 @@
 //global flags
 BOOL dealWithiTunes = NO;
 BOOL inXcode = NO;
-BOOL ignoreiPod = YES;
+BOOL ignoreiPod = NO;
 //============
 
 NSMutableArray *getFLACsFromDirectory(NSString *path){
@@ -277,7 +277,7 @@ void pushToiPod(iTunesApplication *iTunes, iTunesPlaylist *devpl, NSArray *mp3s)
     for(NSString *s in mp3s){
         iTunesTrack *track = [iTunes add:[NSArray arrayWithObject:[NSURL fileURLWithPath:s]]
                                       to:devpl];
-        NSLog(@"track is: %@", track);
+        NSLog(@"Added track: %@", track);
     }
     
     
@@ -285,6 +285,7 @@ void pushToiPod(iTunesApplication *iTunes, iTunesPlaylist *devpl, NSArray *mp3s)
 
 NSArray* flacs2mp3s(NSArray *filelist, NSString *flacpath, NSString *metaflacpath, NSString *lamepath){
     
+    NSOperationQueue *queue = [[NSOperationQueue alloc] init];
     NSMutableArray *mp3s = [[NSMutableArray alloc] init];
     
     for(NSString *s in filelist){
