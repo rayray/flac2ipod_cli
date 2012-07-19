@@ -96,7 +96,7 @@ NSArray* parseArgsAndGetFileList(){
         }
     }
     
-    NSLog(@"%@",files);
+    //NSLog(@"%@",files);
     
     return files;
     //return [[NSFileManager defaultManager] stringWithFileSystemRepresentation:[path UTF8String] 
@@ -315,13 +315,7 @@ int main(int argc, const char * argv[]){
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     iTunesApplication *iTunes = [SBApplication applicationWithBundleIdentifier:@"com.apple.iTunes"];
     
-    if(![iTunes isRunning]){
-        if(dealWithiTunes) [iTunes run];
-        else{
-            printf("Please start iTunes and try again, or use \"-t\".\n");
-            exit(1);
-        }
-    }
+    
     
     iTunesSource *dev = nil;
     iTunesPlaylist *devpl = nil;
@@ -332,12 +326,20 @@ int main(int argc, const char * argv[]){
     
     filelist = parseArgsAndGetFileList();
     
-    if(!ignoreiPod&&(dev = getDevice(iTunes))){
+    if(![iTunes isRunning]){
+        if(dealWithiTunes) [iTunes run];
+        else{
+            printf("Please start iTunes and try again, or use \"-t\".\n");
+            exit(1);
+        }
+    }
+    
+    if(!ignoreiPod&&!(dev = getDevice(iTunes))){
         printf("A usable device doesn't seem to be connected. Woops.\n");
         exit(1);
     }
     
-    if(!ignoreiPod&&(devpl = getDevicePlaylist(dev))){
+    if(!ignoreiPod&&!(devpl = getDevicePlaylist(dev))){
         printf("Can't find the master playlist on the device. Woops.\n");
         exit(1);
     }
