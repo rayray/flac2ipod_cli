@@ -48,7 +48,7 @@ NSArray* parseArgsAndGetFileList(){
     if([[arguments objectAtIndex:1] isEqualToString:@"--help"]){
         printf("Usage: flac2ipod [options] [flacFILE | flacDIR]\n");
         printf("Options:\n");
-        printf("\t-t\tMake the app open and close iTunes\n");
+        printf("\t-t\tMake the app open and close iTunes (probably won't work well)\n");
         printf("\t-x\tXcode mode; the app will make some\n\t\tassumptions about paths to binaries\n");
         exit(1);
     }
