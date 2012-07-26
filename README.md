@@ -30,6 +30,8 @@ The following metadata is carried over to MP3:
 - Genre
 
 ##Example Usage
+Plug in your iDevice and open iTunes.
+
 Put "a flac flacy.flac" on your device.
 
     ./flac2ipod /Volumes/My\ External\ Musics/a\ flac\ flacy.flac
@@ -53,6 +55,7 @@ Put a directory of FLACs on your device.
 - Add album art if available
 - Multithreaded conversion of multiple files
 - Find bugs
+- autotools
 
 ##Compiling
 This program uses the Foundation and Scripting Bridge frameworks.
