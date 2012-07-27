@@ -72,3 +72,7 @@ Now compile with:
     gcc -std=c99 -framework Foundation -framework ScriptingBridge main.m -o flac2ipod
 
 This may change in the future.
+
+##License
+GPLv3.  The Scripting Bridge (including the iTunes scripting API) and Foundation 
+frameworks are system libraries and are thus exempt.
