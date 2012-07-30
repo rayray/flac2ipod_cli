@@ -26,6 +26,7 @@
 BOOL dealWithiTunes = NO;
 BOOL inXcode = NO;
 BOOL ignoreiPod = NO;
+BOOL deleteMP3s = NO;//NO while bug exists
 //============
 
 NSMutableArray *getFLACsFromDirectory(NSString *path){
@@ -64,6 +65,7 @@ NSArray* parseArgsAndGetFileList(){
         printf("Options:\n");
         printf("\t-t\tMake the app open and close iTunes (probably won't work well)\n");
         printf("\t-x\tXcode mode; the app will make some\n\t\tassumptions about paths to binaries\n");
+        printf("\t-d\tDon't delete MP3s before app quits\n");
         exit(1);
     }
     
@@ -81,6 +83,7 @@ NSArray* parseArgsAndGetFileList(){
                 NSLog(@"Xcode mode.");
             }
             else if([s isEqualToString:@"-t"]) dealWithiTunes = YES;
+            else if([s isEqualToString:@"-d"]) deleteMP3s = NO;
             else {
                 printf("%s not recognized. Try --help.\n",[s UTF8String]);
                 exit(1);
@@ -237,7 +240,7 @@ NSMutableArray* getTrackMetadata(NSString *mfpath, NSString *flacfile){
 
 NSString* convertTrack(NSString *flacpath, NSString *metaflacpath, 
                        NSString *lamepath, NSString *flacfile){
-    NSMutableArray *metadata = getTrackMetadata(metaflacpath, flacfile);
+    NSArray *metadata = getTrackMetadata(metaflacpath, flacfile);
     
     NSString *pathForMP3 = [flacfile stringByDeletingLastPathComponent];
     NSString *filenameForMP3 = [[flacfile lastPathComponent] stringByDeletingPathExtension];
@@ -299,7 +302,7 @@ void pushToiPod(iTunesApplication *iTunes, iTunesPlaylist *devpl, NSArray *mp3s)
 
 NSArray* flacs2mp3s(NSArray *filelist, NSString *flacpath, NSString *metaflacpath, NSString *lamepath){
     
-    NSOperationQueue *queue = [[NSOperationQueue alloc] init];
+    //NSOperationQueue *queue = [[NSOperationQueue alloc] init];
     NSMutableArray *mp3s = [[NSMutableArray alloc] init];
     
     for(NSString *s in filelist){
@@ -361,7 +364,8 @@ int main(int argc, const char * argv[]){
     findPaths(&flacpath, &metaflacpath, &lamepath);
     mp3s = flacs2mp3s(filelist, flacpath, metaflacpath, lamepath);
     pushToiPod(iTunes, devpl, mp3s);
-    trash(mp3s);
+
+    if(deleteMP3s) trash(mp3s);
     
     if(dealWithiTunes) [iTunes quit];
     
