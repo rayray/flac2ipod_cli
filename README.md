@@ -9,6 +9,11 @@ brick your device, but who knows how iTunes will react in some circumstances.
 
 Multithreading work is in progress.
 
+###Known Bugs
+**For iPad 2 running iOS 5.1.1**, iTunes does not wait until syncing is finished
+before giving my app a reference to the track on the device.  This results in
+my app deleting MP3s before they are finished uploading to the device.
+
 ##Description
 This is a command line program that accepts either FLAC file(s) or a 
 directory of FLACs, converts the FLACs to MP3s, and loads
