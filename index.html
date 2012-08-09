@@ -43,6 +43,12 @@ brick your device, but who knows how iTunes will react in some circumstances.</p
 
 <p>Multithreading work is in progress.</p>
 
+<h3>Known Bugs</h3>
+
+<p><strong>For iPad 2 running iOS 5.1.1</strong>, iTunes does not wait until syncing is finished
+before giving my app a reference to the track on the device.  This results in
+my app deleting MP3s before they are finished uploading to the device.</p>
+
 <h2>Description</h2>
 
 <p>This is a command line program that accepts either FLAC file(s) or a 
@@ -65,6 +71,8 @@ will be deleted from your computer.</p>
 <li>Track number</li>
 <li>Genre</li>
 </ul><h2>Example Usage</h2>
+
+<p>Plug in your iDevice and open iTunes.</p>
 
 <p>Put "a flac flacy.flac" on your device.</p>
 
@@ -100,6 +108,7 @@ will be deleted from your computer.</p>
 <li>Add album art if available</li>
 <li>Multithreaded conversion of multiple files</li>
 <li>Find bugs</li>
+<li>autotools</li>
 </ul><h2>Compiling</h2>
 
 <p>This program uses the Foundation and Scripting Bridge frameworks.</p>
@@ -118,6 +127,11 @@ folder as <code>main.m</code>, execute this:</p>
 </code></pre>
 
 <p>This may change in the future.</p>
+
+<h2>License</h2>
+
+<p>GPLv3.  The Scripting Bridge (including the iTunes scripting API) and Foundation 
+frameworks are system libraries and are thus exempt.</p>
         </section>
 
         <footer>
