@@ -26,7 +26,7 @@
 BOOL dealWithiTunes = NO;
 BOOL inXcode = NO;
 BOOL ignoreiPod = NO;
-BOOL deleteMP3s = NO;//NO while bug exists
+BOOL deleteMP3s = YES;
 //============
 
 NSMutableArray *getFLACsFromDirectory(NSString *path){
